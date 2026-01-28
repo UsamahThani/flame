@@ -3,6 +3,7 @@ import { App, NewApp } from '../../interfaces';
 export const newAppTemplate: NewApp = {
   name: '',
   url: '',
+  urlAlt: '',
   icon: '',
   isPublic: true,
   description: '',

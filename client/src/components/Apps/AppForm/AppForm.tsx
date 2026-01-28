@@ -133,6 +133,20 @@ export const AppForm = ({ modalHandler }: Props): JSX.Element => {
         />
       </InputGroup>
 
+      {/* URL Alternate */}
+      <InputGroup>
+        <label htmlFor="urlAlt">App URL (Alternate)</label>
+        <input
+          type="text"
+          name="urlAlt"
+          id="urlAlt"
+          placeholder="bookstack.example.com"
+          required
+          value={formData.urlAlt}
+          onChange={(e) => inputChangeHandler(e)}
+        />
+      </InputGroup>
+
       {/* DESCRIPTION */}
       <InputGroup>
         <label htmlFor="description">App description</label>

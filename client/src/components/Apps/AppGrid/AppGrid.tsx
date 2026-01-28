@@ -9,6 +9,7 @@ interface Props {
   apps: App[];
   totalApps?: number;
   searching: boolean;
+  useAlternativeLinks?: boolean;
 }
 
 export const AppGrid = (props: Props): JSX.Element => {
@@ -21,7 +22,13 @@ export const AppGrid = (props: Props): JSX.Element => {
       apps = (
         <div className={classes.AppGrid}>
           {props.apps.map((app: App): JSX.Element => {
-            return <AppCard key={app.id} app={app} />;
+            return (
+              <AppCard
+                key={app.id}
+                app={app}
+                useAlternativeLinks={props.useAlternativeLinks ?? false}
+              />
+            );
           })}
         </div>
       );

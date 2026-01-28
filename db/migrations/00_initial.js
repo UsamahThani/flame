@@ -151,6 +151,10 @@ const up = async (query) => {
       type: STRING,
       allowNull: false,
     },
+    urlAlt: {
+      type: STRING,
+      allowNull: true,
+    },
     icon: {
       type: STRING,
       allowNull: false,

@@ -8,12 +8,15 @@ import { State } from '../../../store/reducers';
 
 interface Props {
   app: App;
+  useAlternativeLinks: boolean;
 }
 
-export const AppCard = ({ app }: Props): JSX.Element => {
+export const AppCard = ({ app, useAlternativeLinks }: Props): JSX.Element => {
   const { config } = useSelector((state: State) => state.config);
 
-  const [displayUrl, redirectUrl] = urlParser(app.url);
+  const selectedUrl = useAlternativeLinks && app.urlAlt ? app.urlAlt : app.url; // optional works
+
+  const [displayUrl, redirectUrl] = urlParser(selectedUrl);
 
   let iconEl: JSX.Element;
   const { icon } = app;

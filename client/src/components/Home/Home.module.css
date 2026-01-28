@@ -28,3 +28,64 @@
 .HomeSpace {
   height: 20px;
 }
+
+/* From Uiverse.io by gharsh11032000 */
+/* The switch - the box around the slider */
+.Switch {
+  font-size: 10px;
+  position: relative;
+  display: inline-block;
+  width: 3.5em;
+  height: 2em;
+}
+
+/* Hide default HTML checkbox */
+.Switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* The slider */
+.Slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: #9fccfa;
+  border-radius: 50px;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.Slider:before {
+  position: absolute;
+  content: '';
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 2em;
+  width: 2em;
+  inset: 0;
+  background-color: white;
+  border-radius: 50px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.Switch input:checked + .Slider {
+  background: #0974f1;
+}
+
+.Switch input:focus + .Slider {
+  box-shadow: 0 0 1px #0974f1;
+}
+
+.Switch input:checked + .Slider:before {
+  transform: translateX(1.6em);
+}
+
+.SectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}

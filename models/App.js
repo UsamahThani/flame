@@ -36,6 +36,10 @@ const App = sequelize.define(
       allowNull: false,
       defaultValue: '',
     },
+    urlAlt: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     tableName: 'apps',

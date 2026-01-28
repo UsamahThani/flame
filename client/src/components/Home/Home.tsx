@@ -46,6 +46,9 @@ export const Home = (): JSX.Element => {
     null | Category[]
   >(null);
 
+  const [useAlternativeLinks, setUseAlternativeLinks] =
+    useState<boolean>(false);
+
   // Load applications
   useEffect(() => {
     if (!apps.length) {
@@ -116,7 +119,20 @@ export const Home = (): JSX.Element => {
 
       {!config.hideApps && (isAuthenticated || apps.some((a) => a.isPinned)) ? (
         <Fragment>
-          <SectionHeadline title="Applications" link="/applications" />
+          <div className={classes.SectionHeader}>
+            <SectionHeadline title="Applications" link="/applications" />
+            <label
+              className={classes.Switch}
+              title="Toggle to use Tailscale links"
+            >
+              <input
+                type="checkbox"
+                checked={useAlternativeLinks}
+                onChange={() => setUseAlternativeLinks((prev) => !prev)}
+              />
+              <span className={classes.Slider}></span>
+            </label>
+          </div>
           {appsLoading ? (
             <Spinner />
           ) : (
@@ -128,6 +144,7 @@ export const Home = (): JSX.Element => {
               }
               totalApps={apps.length}
               searching={!!localSearch}
+              useAlternativeLinks={useAlternativeLinks}
             />
           )}
           <div className={classes.HomeSpace}></div>
