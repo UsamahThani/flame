@@ -25,6 +25,8 @@ import { Header } from './Header/Header';
 // Utils
 import { escapeRegex } from '../../utility';
 
+const ALT_LINK_KEY = 'useAlternativeLinks';
+
 export const Home = (): JSX.Element => {
   const {
     apps: { apps, loading: appsLoading },
@@ -39,85 +41,102 @@ export const Home = (): JSX.Element => {
     dispatch
   );
 
-  // Local search query
-  const [localSearch, setLocalSearch] = useState<null | string>(null);
-  const [appSearchResult, setAppSearchResult] = useState<null | App[]>(null);
+  // Search state
+  const [localSearch, setLocalSearch] = useState<string | null>(null);
+  const [appSearchResult, setAppSearchResult] = useState<App[] | null>(null);
   const [bookmarkSearchResult, setBookmarkSearchResult] = useState<
-    null | Category[]
+    Category[] | null
   >(null);
 
-  const [useAlternativeLinks, setUseAlternativeLinks] =
-    useState<boolean>(false);
+  // ⬇️ Persistent toggle (null = not loaded yet)
+  const [useAlternativeLinks, setUseAlternativeLinks] = useState<
+    boolean | null
+  >(null);
 
-  // Load applications
+  // Load toggle from localStorage (runs once)
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(ALT_LINK_KEY);
+      setUseAlternativeLinks(saved === 'true');
+    } catch {
+      setUseAlternativeLinks(false);
+    }
+  }, []);
+
+  // Persist toggle to localStorage
+  useEffect(() => {
+    if (useAlternativeLinks === null) return;
+    try {
+      localStorage.setItem(ALT_LINK_KEY, String(useAlternativeLinks));
+    } catch {}
+  }, [useAlternativeLinks]);
+
+  // Load apps
   useEffect(() => {
     if (!apps.length) {
       getApps();
     }
   }, []);
 
-  // Load bookmark categories
+  // Load bookmarks
   useEffect(() => {
     if (!categories.length) {
       getCategories();
     }
   }, []);
 
+  // Search logic
   useEffect(() => {
-    if (localSearch) {
-      // Search through apps
-      setAppSearchResult([
-        ...apps.filter(({ name, description }) =>
-          new RegExp(escapeRegex(localSearch), 'i').test(
-            `${name} ${description}`
-          )
-        ),
-      ]);
-
-      // Search through bookmarks
-      const category = { ...categories[0] };
-
-      category.name = 'Search Results';
-      category.bookmarks = categories
-        .map(({ bookmarks }) => bookmarks)
-        .flat()
-        .filter(({ name }) =>
-          new RegExp(escapeRegex(localSearch), 'i').test(name)
-        );
-
-      setBookmarkSearchResult([category]);
-    } else {
+    if (!localSearch) {
       setAppSearchResult(null);
       setBookmarkSearchResult(null);
+      return;
     }
+
+    setAppSearchResult(
+      apps.filter(({ name, description }) =>
+        new RegExp(escapeRegex(localSearch), 'i').test(`${name} ${description}`)
+      )
+    );
+
+    const category = {
+      ...categories[0],
+      name: 'Search Results',
+      bookmarks: categories
+        .flatMap((c) => c.bookmarks)
+        .filter(({ name }) =>
+          new RegExp(escapeRegex(localSearch), 'i').test(name)
+        ),
+    };
+
+    setBookmarkSearchResult([category]);
   }, [localSearch]);
+
+  // Avoid render until toggle is loaded
+  if (useAlternativeLinks === null) return <Spinner />;
 
   return (
     <Container>
-      {!config.hideSearch ? (
+      {!config.hideSearch && (
         <SearchBar
           setLocalSearch={setLocalSearch}
           appSearchResult={appSearchResult}
           bookmarkSearchResult={bookmarkSearchResult}
         />
-      ) : (
-        <div></div>
       )}
 
       <Header />
 
       {!isAuthenticated &&
-      !apps.some((a) => a.isPinned) &&
-      !categories.some((c) => c.isPinned) ? (
-        <Message>
-          Welcome to Flame! Go to <Link to="/settings/app">/settings</Link>,
-          login and start customizing your new homepage
-        </Message>
-      ) : (
-        <></>
-      )}
+        !apps.some((a) => a.isPinned) &&
+        !categories.some((c) => c.isPinned) && (
+          <Message>
+            Welcome to Flame! Go to <Link to="/settings/app">/settings</Link>,
+            login and start customizing your new homepage
+          </Message>
+        )}
 
-      {!config.hideApps && (isAuthenticated || apps.some((a) => a.isPinned)) ? (
+      {!config.hideApps && (isAuthenticated || apps.some((a) => a.isPinned)) && (
         <Fragment>
           <div className={classes.SectionHeader}>
             <SectionHeadline title="Applications" link="/applications" />
@@ -128,55 +147,48 @@ export const Home = (): JSX.Element => {
               <input
                 type="checkbox"
                 checked={useAlternativeLinks}
-                onChange={() => setUseAlternativeLinks((prev) => !prev)}
+                onChange={() => setUseAlternativeLinks((v) => !v)}
               />
               <span className={classes.Slider}></span>
             </label>
           </div>
+
           {appsLoading ? (
             <Spinner />
           ) : (
             <AppGrid
-              apps={
-                !appSearchResult
-                  ? apps.filter(({ isPinned }) => isPinned)
-                  : appSearchResult
-              }
+              apps={appSearchResult ?? apps.filter(({ isPinned }) => isPinned)}
               totalApps={apps.length}
               searching={!!localSearch}
               useAlternativeLinks={useAlternativeLinks}
             />
           )}
+
           <div className={classes.HomeSpace}></div>
         </Fragment>
-      ) : (
-        <></>
       )}
 
       {!config.hideCategories &&
-      (isAuthenticated || categories.some((c) => c.isPinned)) ? (
-        <Fragment>
-          <SectionHeadline title="Bookmarks" link="/bookmarks" />
-          {bookmarksLoading ? (
-            <Spinner />
-          ) : (
-            <BookmarkGrid
-              categories={
-                !bookmarkSearchResult
-                  ? categories.filter(
-                      ({ isPinned, bookmarks }) => isPinned && bookmarks.length
-                    )
-                  : bookmarkSearchResult
-              }
-              totalCategories={categories.length}
-              searching={!!localSearch}
-              fromHomepage={true}
-            />
-          )}
-        </Fragment>
-      ) : (
-        <></>
-      )}
+        (isAuthenticated || categories.some((c) => c.isPinned)) && (
+          <Fragment>
+            <SectionHeadline title="Bookmarks" link="/bookmarks" />
+            {bookmarksLoading ? (
+              <Spinner />
+            ) : (
+              <BookmarkGrid
+                categories={
+                  bookmarkSearchResult ??
+                  categories.filter(
+                    ({ isPinned, bookmarks }) => isPinned && bookmarks.length
+                  )
+                }
+                totalCategories={categories.length}
+                searching={!!localSearch}
+                fromHomepage
+              />
+            )}
+          </Fragment>
+        )}
 
       <Link to="/settings" className={classes.SettingsButton}>
         <Icon icon="mdiCog" color="var(--color-background)" />
